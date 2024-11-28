@@ -256,8 +256,8 @@ async function generatePDF() {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ unit: 'in', format: 'a4' });
 
-    // Spacing between rows
-    const rowSpacing = 0.2;
+   // Spacing between rows
+    const rowSpacing = 0.35;
 
     // Image positions and sizes with spacing
     const positions = [
@@ -265,8 +265,8 @@ async function generatePDF() {
         { x: 4.5, y: 0, width: 3.77, height: 3.77 },
         { x: 0, y: 3.77 + rowSpacing, width: 3.77, height: 3.77 },
         { x: 4.5, y: 3.77 + rowSpacing, width: 3.77, height: 3.77 },
-        { x: 0, y: (3.77 * 2) + (rowSpacing * 2), width: 3.41, height: 3.51 },
-        { x: 4.86, y: (3.77 * 2) + (rowSpacing * 2), width: 3.41, height: 3.51 }
+        { x: 0, y: (3.77 * 2) + (rowSpacing * 2), width: 3.41, height: 3.41 },
+        { x: 4.86, y: (3.77 * 2) + (rowSpacing * 2), width: 3.41, height: 3.41 }
     ];
 
     for (let i = 0; i < images.length; i++) {
