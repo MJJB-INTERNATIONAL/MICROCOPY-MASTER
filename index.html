@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +9,7 @@
      <meta name="google-site-verification" content="l9vbIF4QzgoyYuGtLa2XKGKv7831cVizZNdyj3UdLPc" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
- 
+
     <title>MicroCopy Master - M.J.J.B. PDF Tool</title>
     <meta name="description" content="Create professional MicroCopies by merging and resizing images into A4 PDF format. A simple, fast, and free tool by M.J.J.B.">
     <meta name="keywords" content="MicroCopy, PDF Generator, M.J.J.B, MJJB, mjjb, m.j.j.b, MJJB Tool, A4 PDF, Image Merge, PDF Maker, Easy PDF Tool, Free PDF Tool">
@@ -80,32 +79,32 @@
 
     /* Preview container styling */
 #previewContainer {
-    display: none; /* Completely hidden by default */
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Two images per row */
+    gap: 12px; /* Space between images */
     margin-top: 30px;
-    width: 80%;
+    width: 90%; /* Adjusted to fit the container within the screen */
     max-width: 600px;
     border: 1px solid #f7a3d2; /* Light pink border */
     padding: 12px;
-    background-color: #4b2e53;
+    background-color: #4b2e53; /* Background color */
     border-radius: 8px;
-    justify-items: center; /* Center the images inside the grid */
     margin-left: auto;
     margin-right: auto; /* Center the container */
+    justify-items: center; /* Center images horizontally within the grid */
+    box-sizing: border-box;
 }
 
-        #previewContainer img {
-            width: 100%;
-            height: auto;
-            max-width: 200px;
-            max-height: 200px;
-            border: 1px solid #fff;
-            padding: 5px;
-            box-sizing: border-box;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Soft shadow for images */
-        }
+#previewContainer img {
+    max-width: 100%; /* Make sure images fit within their grid cell */
+    max-height: 150px; /* Constrain height to ensure consistent layout */
+    width: auto; /* Maintain aspect ratio */
+    height: auto; /* Maintain aspect ratio */
+    border: 1px solid #fff; /* Optional: Border for images */
+    padding: 5px; /* Optional: Padding for visual spacing */
+    border-radius: 8px; /* Optional: Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Optional: Add shadow for depth */
+}
 
         /* PDF Options and Buttons */
         #pdfOptions {
@@ -164,7 +163,7 @@
   </style>
 </head>
 <body>
-    <h1>MicroCopy-Master By <u>M.J.J.B</u>.</h1>
+    <h1>MicroCopy-Master</h1>
     <form id="imageForm">
         <input type="file" accept="image/*" multiple id="images" max="6" onchange="checkImages()"><br><br>
         <div id="previewContainer"></div>
@@ -180,25 +179,28 @@
         <b><p>&copy; <span id="year"></span> M.J.J.B. All Rights Reserved.</p></b>
       <img src="https://raw.githubusercontent.com/MJJB-INTERNATIONAL/MJJBimge/1baef02cf41529aff671d9ce9350107ecb6d127c/MJJB8w.svg">
     </footer>
-   
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-   
+
    document.getElementById('year').textContent = new Date().getFullYear();
-   
+
    function resetGenerateButton() {
     const button = document.querySelector('button');
     button.textContent = 'Generate PDF'; // Reset button text
 }
 
+let sortedImages = []; // Global array to store sorted images
+
 function checkImages() {
-    const images = document.getElementById('images').files;
+    const images = Array.from(document.getElementById('images').files);
     const pdfOptions = document.getElementById('pdfOptions');
     const previewContainer = document.getElementById('previewContainer');
     const generateButton = document.querySelector('button');
 
     resetGenerateButton(); // Reset button text when images change
 
+    // Handle file count validation
     if (images.length > 6) {
         alert('You can only upload up to 6 images.');
         document.getElementById('images').value = ''; // Clear the file input
@@ -208,6 +210,7 @@ function checkImages() {
         return;
     }
 
+    // Handle file presence
     if (images.length > 0) {
         pdfOptions.style.display = 'block';
         previewContainer.style.display = 'grid';
@@ -217,21 +220,34 @@ function checkImages() {
         previewContainer.style.display = 'none';
         generateButton.disabled = true;
     }
-
+ // Clear the previous preview
     previewContainer.innerHTML = "";
+// Set the desired order: "asc" for ascending or "desc" for descending
+    const order = "asc"; // Change to "desc" for descending order
+  // Sort images based on lastModified
+    sortedImages = images.sort((a, b) => {
+        if (order === "asc") {
+            return a.lastModified - b.lastModified;
+        } else {
+            return b.lastModified - a.lastModified;
+        }
+    });
 
-    Array.from(images).forEach((image) => {
-        const imgElement = document.createElement('img');
-        loadImage(image).then(img => {
+    // Preview images in sorted order
+    Promise.all(
+        sortedImages.map((image) => loadImage(image).then((img) => ({ file: image, img })))
+    ).then((loadedImages) => {
+        loadedImages.forEach(({ img }) => {
+            const imgElement = document.createElement('img');
             imgElement.src = img.src;
+            imgElement.style.width = "150px"; // Optional: Style the preview images
+            imgElement.style.margin = "10px";
             previewContainer.appendChild(imgElement);
         });
     });
 }
 
-// Event listener for the PDF name input field
-document.getElementById('pdfName').addEventListener('input', resetGenerateButton); // Reset button text on file name change
-
+// Function to load image file
 function loadImage(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -240,23 +256,22 @@ function loadImage(file) {
             img.onload = () => resolve(img);
             img.src = event.target.result;
         };
+        reader.onerror = reject;
         reader.readAsDataURL(file);
     });
 }
 
 async function generatePDF() {
-    const images = document.getElementById('images').files;
-    const pdfName = document.getElementById('pdfName').value || ''; // Default name if not provided
-
-    if (images.length === 0) {
+    if (sortedImages.length === 0) {
         alert("Please select images before generating the PDF.");
         return;
     }
 
+    const pdfName = document.getElementById('pdfName').value || 'Document'; // Default name if not provided
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ unit: 'in', format: 'a4' });
 
-   // Spacing between rows
+    // Spacing between rows
     const rowSpacing = 0.35;
 
     // Image positions and sizes with spacing
@@ -269,38 +284,31 @@ async function generatePDF() {
         { x: 4.86, y: (3.77 * 2) + (rowSpacing * 2), width: 3.41, height: 3.41 }
     ];
 
-    for (let i = 0; i < images.length; i++) {
-        const img = await loadImage(images[i]);
+    for (let i = 0; i < sortedImages.length; i++) {
+        const img = await loadImage(sortedImages[i]);
         const { x, y, width, height } = positions[i];
         pdf.addImage(img, 'JPEG', x, y, width, height);
     }
 
     // Save the PDF with the given name
     pdf.save(pdfName + ' M.J.J.B.');
-
     // Change the button text to "Generated PDF!"
     const button = document.querySelector('button');
     button.textContent = 'Generated PDF!';
 }
-   
-
 // Prevent right-click, Ctrl+U, and Developer Tools shortcuts
 document.addEventListener('keydown', function(e) {
     if (e.ctrlKey && (e.key === 'S' || e.key === 's' || e.key === 'u' || e.key === 'U' || e.key === 'i' || e.key === 'I' || e.key === 'J' || e.key === 'j')) {
         e.preventDefault();
-        
     }
     if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
         e.preventDefault();
-        
     }
 });
 
 document.addEventListener('contextmenu', function(e) {
     e.preventDefault();
 });
-
-
 </script>
 </body>
 </html>
